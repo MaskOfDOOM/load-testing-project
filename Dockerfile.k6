@@ -1,0 +1,20 @@
+# Custom k6 image with StatsD output extension
+FROM golang:1.25-alpine AS builder
+
+# Install xk6
+RUN apk add --no-cache git
+RUN go install go.k6.io/xk6/cmd/xk6@latest
+
+# Build k6 with StatsD output extension
+RUN xk6 build \
+    --with github.com/LeonAdato/xk6-output-statsd@latest \
+    --output /k6
+
+# Final image
+FROM alpine:latest
+RUN apk add --no-cache ca-certificates && \
+    addgroup -S k6 && \
+    adduser -S -G k6 k6
+COPY --from=builder /k6 /usr/bin/k6
+USER k6
+ENTRYPOINT ["k6"]

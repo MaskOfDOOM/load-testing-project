@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'load-testing'
+    replica: '0'
+
+# Remote write configuration for k6 metrics
+remote_write:
+  - url: 'http://localhost:9090/api/v1/write'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # StatsD Exporter - receives metrics from k6 and exposes them for Prometheus (optional, if using StatsD)
+  - job_name: 'statsd-exporter'
+    static_configs:
+      - targets: ['statsd-exporter:9102']
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+
+  # InfluxDB metrics endpoint (if available)
+  - job_name: 'influxdb'
+    static_configs:
+      - targets: ['influxdb:8086']
+    metrics_path: '/metrics'
+    scrape_interval: 10s

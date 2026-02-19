@@ -1,0 +1,31 @@
+# StatsD mapping configuration for k6 metrics
+# k6 sends metrics with prefix "k6." - statsd-exporter auto-detects type (counter/gauge/timer)
+
+mappings:
+  - match: "k6.http_reqs"
+    name: "k6_http_reqs"
+
+  - match: "k6.http_req_duration"
+    name: "k6_http_req_duration_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_failed"
+    name: "k6_http_req_failed"
+
+  - match: "k6.vus"
+    name: "k6_vus"
+
+  - match: "k6.vus_max"
+    name: "k6_vus_max"
+
+  - match: "k6.http_req_receiving"
+    name: "k6_http_req_receiving_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_waiting"
+    name: "k6_http_req_waiting_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_connecting"
+    name: "k6_http_req_connecting_seconds"
+    observer_type: histogram

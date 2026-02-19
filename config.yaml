@@ -1,0 +1,49 @@
+# Load Testing Configuration
+
+# Test parameters
+test:
+  # Base URL to test
+  url: "https://httpbin.org"
+  
+  # Virtual users configuration
+  vus: 5
+  
+  # Test duration (can be "30s", "1m", "5m", etc.)
+  duration: "60s"
+  
+  # Ramp-up and ramp-down stages (optional, overrides duration if set)
+  stages:
+    - duration: "10s"
+      target: 5
+    - duration: "50s"
+      target: 5
+    - duration: "10s"
+      target: 0
+
+# Thresholds for SLA checks
+thresholds:
+  # 95% of requests should complete in less than 500ms
+  p95_duration: 500
+  
+  # Error rate should be less than 1%
+  error_rate: 0.01
+
+# InfluxDB connection (for real-time metrics)
+influxdb:
+  url: "http://localhost:8086"
+  token: "k6-token"
+  org: "k6"
+  bucket: "k6"
+
+# Results configuration
+results:
+  # Base directory for results
+  base_dir: "results"
+  
+  # Keep history of test runs
+  keep_history: true
+  
+  # Generate CSV report (detailed data for each request)
+  # Set to false to save disk space - summary JSON contains aggregated metrics
+  # CSV files can be very large (hundreds of MB for long tests)
+  generate_csv: false
