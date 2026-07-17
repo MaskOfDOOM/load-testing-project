@@ -153,6 +153,9 @@ def run_k6_test(test_script, results_folder, test_name, config):
     if 'test' in config and 'url' in config['test']:
         env['TEST_URL'] = config['test']['url']
     
+    if not generate_csv:
+        print("[WARNING] CSV report is DISABLED. Set results.generate_csv: true in config.yaml to enable detailed per-request data.")
+
     print(f"Running k6 test: {test_script}")
     print(f"Results will be saved to: {results_folder}")
     print("-" * 60)

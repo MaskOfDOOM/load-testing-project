@@ -12,6 +12,7 @@ env/
 venv/
 ENV/
 .venv
+.pytest_cache/
 
 # Environment variables
 .env
@@ -23,6 +24,7 @@ ENV/
 *.swp
 *.swo
 *~
+KODA.md
 
 # OS
 .DS_Store

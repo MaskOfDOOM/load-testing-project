@@ -28,13 +28,6 @@ thresholds:
   # Error rate should be less than 1%
   error_rate: 0.01
 
-# InfluxDB connection (for real-time metrics)
-influxdb:
-  url: "http://localhost:8086"
-  token: "k6-token"
-  org: "k6"
-  bucket: "k6"
-
 # Results configuration
 results:
   # Base directory for results
@@ -46,4 +39,5 @@ results:
   # Generate CSV report (detailed data for each request)
   # Set to false to save disk space - summary JSON contains aggregated metrics
   # CSV files can be very large (hundreds of MB for long tests)
+  # WARNING: When disabled, no per-request data is saved. Only summary JSON is generated.
   generate_csv: false

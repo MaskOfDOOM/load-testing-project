@@ -1,22 +1,38 @@
 # StatsD mapping configuration for k6 metrics
 # k6 sends metrics with prefix "k6." - statsd-exporter auto-detects type (counter/gauge/timer)
+# Timers without explicit mapping become summary; with mapping + observer_type they become histogram
 
 mappings:
+  # --- Counters ---
   - match: "k6.http_reqs"
     name: "k6_http_reqs"
-
-  - match: "k6.http_req_duration"
-    name: "k6_http_req_duration_seconds"
-    observer_type: histogram
 
   - match: "k6.http_req_failed"
     name: "k6_http_req_failed"
 
+  - match: "k6.errors"
+    name: "k6_errors"
+
+  - match: "k6.iterations"
+    name: "k6_iterations"
+
+  - match: "k6.data_received"
+    name: "k6_data_received"
+
+  - match: "k6.data_sent"
+    name: "k6_data_sent"
+
+  # --- Gauges ---
   - match: "k6.vus"
     name: "k6_vus"
 
   - match: "k6.vus_max"
     name: "k6_vus_max"
+
+  # --- Histograms (timing metrics) ---
+  - match: "k6.http_req_duration"
+    name: "k6_http_req_duration_seconds"
+    observer_type: histogram
 
   - match: "k6.http_req_receiving"
     name: "k6_http_req_receiving_seconds"
@@ -28,4 +44,24 @@ mappings:
 
   - match: "k6.http_req_connecting"
     name: "k6_http_req_connecting_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_sending"
+    name: "k6_http_req_sending_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_blocked"
+    name: "k6_http_req_blocked_seconds"
+    observer_type: histogram
+
+  - match: "k6.http_req_tls_handshaking"
+    name: "k6_http_req_tls_handshaking_seconds"
+    observer_type: histogram
+
+  - match: "k6.iteration_duration"
+    name: "k6_iteration_duration_seconds"
+    observer_type: histogram
+
+  - match: "k6.response_time"
+    name: "k6_response_time_seconds"
     observer_type: histogram
