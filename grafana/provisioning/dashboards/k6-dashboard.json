@@ -31,7 +31,7 @@
         "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
         "targets": [
           {
-            "expr": "k6_http_req_failed * 100",
+            "expr": "k6_http_req_failed_total * 100",
             "legendFormat": "Error Rate %",
             "refId": "A"
           }

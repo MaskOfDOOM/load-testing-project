@@ -5,22 +5,22 @@
 mappings:
   # --- Counters ---
   - match: "k6.http_reqs"
-    name: "k6_http_reqs"
+    name: "k6_http_reqs_total"
 
   - match: "k6.http_req_failed"
-    name: "k6_http_req_failed"
+    name: "k6_http_req_failed_total"
 
   - match: "k6.errors"
-    name: "k6_errors"
+    name: "k6_errors_total"
 
   - match: "k6.iterations"
-    name: "k6_iterations"
+    name: "k6_iterations_total"
 
   - match: "k6.data_received"
-    name: "k6_data_received"
+    name: "k6_data_received_total"
 
   - match: "k6.data_sent"
-    name: "k6_data_sent"
+    name: "k6_data_sent_total"
 
   # --- Gauges ---
   - match: "k6.vus"

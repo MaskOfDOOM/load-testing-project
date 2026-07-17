@@ -153,6 +153,9 @@ docker compose logs -f prometheus   # Логи Prometheus
 python scripts/run-test.py k6/tests/basic-web-test.js    # Полный путь
 python scripts/run-test.py basic-web-test.js              # Короткое имя
 python scripts/run-test.py basic-web-test                 # Без расширения
+
+python scripts/run-test.py (скрипт запуска тестов написан на python, запускаем его)
+далее название файла с тестом или путь к нему, любой из вариантов выше. так скрипт запустит тест и сформирует отчёт
 ```
 
 ### Unit-тесты скриптов
