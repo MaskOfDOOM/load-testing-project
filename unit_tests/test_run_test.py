@@ -1,6 +1,6 @@
 """
-Unit tests for run-test.py functions.
-Tests path normalization, test name extraction, and config loading.
+Unit-тесты для функций run-test.py.
+Проверяют нормализацию путей, извлечение имени теста и загрузку конфигурации.
 """
 
 import pytest
@@ -8,7 +8,7 @@ import importlib.util
 import os
 from pathlib import Path
 
-# Import run-test.py (dash in filename prevents normal import)
+# Импорт run-test.py (дефис в имени файла не позволяет использовать обычный import)
 _spec = importlib.util.spec_from_file_location(
     "run_test",
     os.path.join(os.path.dirname(__file__), '..', 'scripts', 'run-test.py')
@@ -22,79 +22,80 @@ load_config = _run_test.load_config
 
 
 class TestNormalizeTestPath:
-    """Tests for normalize_test_path function"""
+    """Тесты функции normalize_test_path — преобразования путей к тестам."""
 
     def test_full_unix_path(self):
-        """Full Unix-style path should be normalized correctly"""
+        """Полный Unix-путь (через '/') должен нормализоваться без изменений."""
         result = normalize_test_path("k6/tests/basic-web-test.js")
         assert result == "k6/tests/basic-web-test.js"
 
     def test_full_windows_path(self):
-        """Windows-style path with backslashes should be normalized"""
-        result = normalize_test_path(r"k6\tests\basic-web-test.js")
+        """Windows-путь (через '\') должен быть преобразован в Unix-формат."""
+        result = normalize_test_path(r"k6	ests\basic-web-test.js")
         assert result == "k6/tests/basic-web-test.js"
 
     def test_short_name_with_extension(self):
-        """Short name with .js extension should resolve to full path"""
+        """Короткое имя файла с расширением должно разрешаться в полный путь."""
         result = normalize_test_path("basic-web-test.js")
         assert result == "k6/tests/basic-web-test.js"
 
     def test_short_name_without_extension(self):
-        """Short name without extension should auto-append .js"""
+        """Короткое имя без расширения должно автоматически дополняться до .js."""
         result = normalize_test_path("basic-web-test")
         assert result == "k6/tests/basic-web-test.js"
 
     def test_leading_dot_slash(self):
-        """Leading ./ should be stripped"""
+        """Ведущий './' должен быть удалён из пути."""
         result = normalize_test_path("./k6/tests/basic-web-test.js")
         assert result == "k6/tests/basic-web-test.js"
 
     def test_leading_slash(self):
-        """Leading / should be stripped"""
+        """Ведущий '/' должен быть удалён из пути."""
         result = normalize_test_path("/k6/tests/basic-web-test.js")
         assert result == "k6/tests/basic-web-test.js"
 
 
 class TestGetTestName:
-    """Tests for get_test_name function"""
+    """Тесты функции get_test_name — извлечения имени теста из пути."""
 
     def test_basic_name(self):
-        """Should extract stem from path"""
+        """Из полного пути должно извлекаться базовое имя без расширения."""
         assert get_test_name("k6/tests/basic-web-test.js") == "basic-web-test"
 
     def test_short_path(self):
-        """Should extract stem from filename"""
+        """Из короткого имени файла должно извлекаться базовое имя."""
         assert get_test_name("basic-web-test.js") == "basic-web-test"
 
     def test_with_directory(self):
-        """Should extract stem from full path"""
+        """Имя теста должно извлекаться корректно при любом формате пути."""
         assert get_test_name("k6/tests/my-test.js") == "my-test"
 
 
 class TestLoadConfig:
-    """Tests for load_config function"""
+    """Тесты функции load_config — загрузки и валидации config.yaml."""
 
     def test_config_loads(self):
-        """Config should load without error"""
+        """Конфигурация должна загружаться без ошибок."""
         config = load_config()
         assert config is not None
 
     def test_config_has_test_section(self):
-        """Config should have 'test' section"""
+        """Конфигурация должна содержать раздел 'test' с параметрами теста."""
         config = load_config()
         assert 'test' in config
 
     def test_config_has_url(self):
-        """Config should have test.url"""
+        """В разделе 'test' должен быть указан URL для тестирования."""
         config = load_config()
         assert 'url' in config['test']
 
     def test_config_has_thresholds(self):
-        """Config should have 'thresholds' section"""
+        """Конфигурация должна содержать раздел 'thresholds' с порогами SLA."""
         config = load_config()
         assert 'thresholds' in config
 
     def test_config_has_results(self):
-        """Config should have 'results' section"""
+        """Конфигурация должна содержать раздел 'results' с настройками отчётов."""
         config = load_config()
         assert 'results' in config
+
