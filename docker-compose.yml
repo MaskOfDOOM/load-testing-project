@@ -1,33 +1,4 @@
 services:
-  influxdb:
-    image: influxdb:2.7
-    container_name: load-testing-influxdb
-    restart: unless-stopped
-    ports:
-      - "8086:8086"
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_ADMIN_USERNAME:-admin}
-      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_ADMIN_PASSWORD:-admin123}
-      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG:-k6}
-      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_INIT_BUCKET:-k6}
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN:-k6-token}
-    volumes:
-      - influxdb-data:/var/lib/influxdb2
-      - influxdb-config:/etc/influxdb2
-    networks:
-      - load-testing-network
-    healthcheck:
-      test: ["CMD", "influx", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-
   statsd-exporter:
     image: prom/statsd-exporter:latest
     container_name: load-testing-statsd-exporter
@@ -146,7 +117,5 @@ networks:
     driver: bridge
 
 volumes:
-  influxdb-data:
-  influxdb-config:
   prometheus-data:
   grafana-data:
