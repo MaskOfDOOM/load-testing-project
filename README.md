@@ -73,7 +73,7 @@ docker compose up -d
 ```
 
 После запуска будут доступны:
-- **Grafana**: http://localhost:3000 (логин: `admin`, пароль: `admin`)
+- **Grafana**: http://localhost:3000 (логин: `admin`, пароль: `admin123`)
 - **Prometheus**: http://localhost:9090
 
 ### 2. Запуск теста
