@@ -18,7 +18,11 @@ k6 → StatsD Exporter → Prometheus → Grafana
 ```
 load-testing-project/
 ├── docker-compose.yml          # Оркестрация всех сервисов
-├── config.yaml                 # Конфигурация тестов
+├── config.yaml                 # Конфигурация тестов (только параметры запуска)
+├── Makefile                    # Команды для локального и CI-запуска
+├── .env                        # Переменные окружения (не попадает в git)
+├── .env.example                # Шаблон .env
+├── .gitignore                  # Исключения для git
 ├── prometheus/
 │   ├── prometheus.yml          # Конфигурация Prometheus
 │   └── statsd-mapping.yml      # Маппинг StatsD метрик в Prometheus
@@ -34,7 +38,7 @@ load-testing-project/
 │   └── tests/
 │       └── basic-web-test.js   # Базовый тест
 ├── scripts/
-│   └── run-test.py             # Скрипт запуска теста
+│   └── run-test.py             # Скрипт запуска теста (с историей и валидацией)
 ├── unit_tests/
 │   └── test_run_test.py        # Unit-тесты скриптов
 └── results/                    # Результаты тестов (автоматически создаётся)
@@ -101,7 +105,8 @@ python scripts/run-test.py basic-web-test
 1. Создаётся папка с результатами в формате: `results/YYYY-MM-DD_HH-MM-SS_test-name/`
 2. Запускается k6 тест с экспортом метрик в StatsD (для визуализации в Grafana в реальном времени)
 3. Агрегированные метрики сохраняются в JSON Summary в созданной папке
-4. Метаданные теста сохраняются в `results/history.json`
+4. Скрипт проверяет пороги: доля ошибок < 1%, P95 < 5000 мс, успешных проверок > 99%
+5. Метаданные теста сохраняются в `results/history.json`
 
 ### 3. Визуализация в Grafana
 
@@ -153,9 +158,6 @@ docker compose logs -f prometheus   # Логи Prometheus
 python scripts/run-test.py k6/tests/basic-web-test.js    # Полный путь
 python scripts/run-test.py basic-web-test.js              # Короткое имя
 python scripts/run-test.py basic-web-test                 # Без расширения
-
-python scripts/run-test.py (скрипт запуска тестов написан на python, запускаем его)
-далее название файла с тестом или путь к нему, любой из вариантов выше. так скрипт запустит тест и сформирует отчёт
 ```
 
 ### Unit-тесты скриптов
@@ -170,12 +172,10 @@ python -m pytest unit_tests/test_run_test.py -v
 ```
 
 Тесты покрывают:
-- Нормализацию путей (Windows/Unix, короткие имена)
+- Нормализацию путей (Windows/Unix, короткие имена, без расширения)
 - Извлечение имени теста из пути
 - Загрузку и валидацию config.yaml
-- Извлечение метрик из JSON summary
-- Форматирование длительности и процентов
-- Загрузку и валидацию JSON отчётов
+- Валидацию summary JSON (checks, error rate, P95)
 
 ### Очистка результатов
 
@@ -188,7 +188,7 @@ rm -rf results/*/
 
 ### config.yaml
 
-Основной файл конфигурации тестов:
+Основной файл конфигурации (только параметры запуска, не thresholds):
 
 ```yaml
 test:
@@ -205,10 +205,6 @@ test:
     - duration: "10s"
       target: 0
 
-thresholds:
-  p95_duration: 500            # 95% запросов должны быть < 500ms
-  error_rate: 0.01             # Ошибок должно быть < 1%
-
 results:
   generate_csv: false          # CSV отключён по умолчанию
 ```
@@ -216,13 +212,68 @@ results:
 ### Создание собственного теста
 
 1. Создайте файл в `k6/tests/`, например `my-test.js` (используйте `basic-web-test.js` как шаблон)
-2. Настройте параметры нагрузки и thresholds
+2. Запустите тест — пороги (ошибки < 1%, P95 < 5000 мс, checks > 99%) проверяются автоматически скриптом
 3. Запустите тест:
-   ```bash
-   python scripts/run-test.py k6/tests/my-test.js    # Полный путь
-   python scripts/run-test.py my-test.js              # Короткое имя
-   python scripts/run-test.py my-test                 # Без расширения
-   ```
+    ```bash
+    python scripts/run-test.py k6/tests/my-test.js    # Полный путь
+    python scripts/run-test.py my-test.js              # Короткое имя
+    python scripts/run-test.py my-test                 # Без расширения
+    ```
+
+### Использование k6 Studio
+
+[k6 Studio](https://k6.io/products/k6-studio/) — визуальный редактор для записи k6-тестов через браузер. Позволяет записывать сценарии без написания кода.
+
+#### Экспорт из Studio
+
+1. Откройте Studio, запишите сценарий (нажмите Record)
+2. Экспортируйте тест: **Export → JavaScript**
+3. Сохраните файл в папку `k6/tests/`
+4. Замените жёсткий URL на `__ENV.TEST_URL` (см. ниже)
+
+#### Что нужно поправить после экспорта
+
+Studio генерирует рабочий код, но есть несколько правок, обязательных для работы в твоем проекте:
+
+| Что | Как Studio генерирует | Как должно быть | Зачем |
+|-----|----------------------|-----------------|-------|
+| **URL** | `const BASE_URL = 'https://staging-api.example.com';` | `const BASE_URL = __ENV.TEST_URL || 'https://postman-echo.com';` | Чтобы тест работал и локально, и в CI. URL берётся из `config.yaml` или env-переменной |
+| **Статус-коды** | `check(res, { 'status is 200': (r) => r.status === 200 })` | То же самое | Это ок, Studio проверяет `200`. Если нужны другие коды — добавь вручную |
+| **Заголовки** | `headers: { 'Cookie': '...', 'User-Agent': '...' }` | Удалить Cookie и User-Agent | Cookie и User-Agent из браузера не нужны для нагрузочного теста. Оставить только `Authorization` если есть |
+
+#### Что из Studio уже совместимо
+
+| Что | Совместимо? | Примечание |
+|-----|-------------|------------|
+| **Stages** | Частично | Studio может сгенерировать `iterations: 1` — замени на `stages:` из `basic-web-test.js` |
+| **Batch-запросы** | Да | Studio генерирует `http.batch()` — это хорошо, параллельные запросы реалистичнее |
+| **Custom metrics** | Нет | Studio не генерирует `Rate` и `Trend`. Для начала не нужно — основные метрики k6 уже есть |
+
+#### Обязательные правки
+
+После экспорта из Studio **обязательно** проверь три вещи:
+
+```javascript
+// 1. URL из окружения (не жёсткий)
+const BASE_URL = __ENV.TEST_URL || 'https://postman-echo.com';
+
+// 2. stages вместо iterations: 1
+export const options = {
+  stages: [
+    { duration: '10s', target: 5 },
+    { duration: '50s', target: 5 },
+    { duration: '10s', target: 0 },
+  ],
+};
+
+// 3. sleep между итерациями (Studio не добавляет)
+export default function () {
+  // ... тест ...
+  sleep(0.5);  // без него нагрузка будет нереалистичной
+}
+```
+
+> **Резюме:** k6 Studio полностью совместим с проектом. Единственная обязательная правка — заменить жёсткий URL на `__ENV.TEST_URL`. Пороги (thresholds) проверяются автоматически в `run-test.py` после завершения теста.
 
 ## Метрики в Grafana
 
@@ -242,9 +293,13 @@ Dashboard включает следующие метрики:
 Содержит агрегированные метрики теста (компактный формат):
 - Итоговые значения метрик (средние, минимум, максимум, процентили)
 - Результаты проверок (checks) - количество passes/fails
-- Результаты thresholds
 - Группировка по группам тестов
 - Размер файла: ~10-50 KB (вместо сотен MB для полного JSON)
+
+Скрипт `run-test.py` автоматически проверяет пороги по summary JSON:
+- Доля ошибок < 1%
+- P95 < 5000 мс
+- Успешных проверок > 99%
 
 **Структура:**
 - `metrics` - агрегированные метрики (http_reqs, http_req_duration, vus и др.)
@@ -276,7 +331,7 @@ results:
 - Имя теста
 - Параметры конфигурации
 - Путь к результатам
-- Статус выполнения
+- Статус выполнения (completed / failed)
 
 ## Устранение неполадок
 
@@ -329,7 +384,3 @@ docker compose down -v
 - **k6 документация**: https://k6.io/docs/
 - **Grafana документация**: https://grafana.com/docs/
 - **Prometheus документация**: https://prometheus.io/docs/
-
-## Лицензия
-
-Этот проект создан для образовательных целей.

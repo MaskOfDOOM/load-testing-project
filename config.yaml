@@ -1,17 +1,17 @@
-# Load Testing Configuration
+# Конфигурация нагрузочного тестирования
 
-# Test parameters
+# Параметры теста
 test:
-  # Base URL to test
+  # Базовый URL для тестирования
   url: "https://httpbin.org"
   
-  # Virtual users configuration
+  # Количество виртуальных пользователей
   vus: 5
   
-  # Test duration (can be "30s", "1m", "5m", etc.)
+  # Длительность теста (формат: "30s", "1m", "5m" и т.д.)
   duration: "60s"
   
-  # Ramp-up and ramp-down stages (optional, overrides duration if set)
+  # Ступенчатые стадии нагрузки (опционально, перезаписывает duration если заданы)
   stages:
     - duration: "10s"
       target: 5
@@ -20,24 +20,16 @@ test:
     - duration: "10s"
       target: 0
 
-# Thresholds for SLA checks
-thresholds:
-  # 95% of requests should complete in less than 500ms
-  p95_duration: 500
-  
-  # Error rate should be less than 1%
-  error_rate: 0.01
-
-# Results configuration
+# Результаты
 results:
-  # Base directory for results
+  # Базовая директория для результатов
   base_dir: "results"
   
-  # Keep history of test runs
+  # Сохранять историю запусков
   keep_history: true
   
-  # Generate CSV report (detailed data for each request)
-  # Set to false to save disk space - summary JSON contains aggregated metrics
-  # CSV files can be very large (hundreds of MB for long tests)
-  # WARNING: When disabled, no per-request data is saved. Only summary JSON is generated.
+  # Генерировать CSV-отчёт (детальные данные по каждому запросу)
+  # Установите false для экономии места — summary JSON содержит агрегированные метрики
+  # CSV-файлы могут занимать сотни мегабайт для длительных тестов
+  # ВНИМАНИЕ: При отключении сохраняются только агрегированные данные, без данных по каждому запросу
   generate_csv: false

@@ -6,11 +6,12 @@ global:
     replica: '0'
 
 scrape_configs:
+  # Сам Prometheus для мониторинга
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # StatsD Exporter - receives metrics from k6 and exposes them for Prometheus
+  # StatsD Exporter — принимает метрики от k6 и отдаёт их Prometheus
   - job_name: 'statsd-exporter'
     static_configs:
       - targets: ['statsd-exporter:9102']

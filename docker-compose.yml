@@ -1,11 +1,11 @@
 services:
   statsd-exporter:
-    image: prom/statsd-exporter:latest
+    image: prom/statsd-exporter:v0.26.1
     container_name: load-testing-statsd-exporter
     restart: unless-stopped
     ports:
-      - "9125:9125"  # StatsD receiver
-      - "9102:9102"  # Metrics endpoint for Prometheus
+      - "9125:9125"  # Порт для приёма метрик StatsD
+      - "9102:9102"  # Порт для Prometheus (HTTP)
     command:
       - '--statsd.mapping-config=/etc/statsd/mapping.yml'
     volumes:
@@ -24,7 +24,7 @@ services:
           cpus: '0.25'
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.0.1
     container_name: load-testing-prometheus
     restart: unless-stopped
     ports:
@@ -54,11 +54,11 @@ services:
           cpus: '0.5'
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.0
     container_name: load-testing-grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT:-3000}:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-admin123}
@@ -83,11 +83,9 @@ services:
           cpus: '0.25'
 
   k6:
-    build:
-      context: .
-      dockerfile: Dockerfile.k6
+    image: grafana/k6:0.50.0
     container_name: load-testing-k6
-    restart: unless-stopped
+    # k6 — инструмент для запуска тестов, а не сервис, поэтому restart не нужен
     volumes:
       - ./k6:/scripts:ro
       - ./results:/results
@@ -100,17 +98,6 @@ services:
     command: ["-c", "tail -f /dev/null"]
     stdin_open: true
     tty: true
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep k6 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 1
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
 
 networks:
   load-testing-network:

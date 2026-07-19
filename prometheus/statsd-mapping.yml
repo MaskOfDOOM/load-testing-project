@@ -1,19 +1,15 @@
-# StatsD mapping configuration for k6 metrics
-# k6 sends metrics with prefix "k6." - statsd-exporter auto-detects type (counter/gauge/timer)
-# Timers without explicit mapping become summary; with mapping + observer_type they become histogram
+# Конфигурация маппинга StatsD для метрик k6
+# k6 отправляет метрики с префиксом "k6." — statsd-exporter автоматически определяет тип (counter/gauge/timer)
+# Timer без явного маппинга превращается в summary; с mapping + observer_type — в histogram
 
 mappings:
-  # --- Counters ---
+  # --- Счётчики ---
   - match: "k6.http_reqs"
     name: "k6_http_reqs_total"
     type: COUNTER
 
   - match: "k6.http_req_failed"
     name: "k6_http_req_failed_total"
-    type: COUNTER
-
-  - match: "k6.errors"
-    name: "k6_errors_total"
     type: COUNTER
 
   - match: "k6.iterations"
@@ -28,14 +24,14 @@ mappings:
     name: "k6_data_sent_total"
     type: COUNTER
 
-  # --- Gauges ---
+  # --- Гейджи ---
   - match: "k6.vus"
     name: "k6_vus"
 
   - match: "k6.vus_max"
     name: "k6_vus_max"
 
-  # --- Histograms (timing metrics) ---
+  # --- Гистограммы (метрики времени) ---
   - match: "k6.http_req_duration"
     name: "k6_http_req_duration_seconds"
     observer_type: histogram
